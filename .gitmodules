@@ -1,0 +1,6 @@
+[submodule "external/implot/implot"]
+	path = external/implot/implot
+	url = https://github.com/epezent/implot.git
+[submodule "external/imgui/imgui"]
+	path = external/imgui/imgui
+	url = https://github.com/ocornut/imgui.git
