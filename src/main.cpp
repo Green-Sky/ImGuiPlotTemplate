@@ -1,5 +1,5 @@
 #include <SDL.h>
-#include <glad/glad.h>
+//#include <glad/glad.h>
 
 #include <imgui.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -7,6 +7,8 @@
 
 #include <implot.h>
 
+#include <thread>
+#include <chrono>
 #include <iostream>
 
 int main(int argc, char** argv) {
@@ -20,7 +22,8 @@ int main(int argc, char** argv) {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	auto* win = SDL_CreateWindow("RealTimeImPlot", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_OPENGL);
+	// hide main window :)
+	auto* win = SDL_CreateWindow("RealTimeImPlot", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
 	if (!win) {
 		std::cerr << "error opening window\n";
 		return 1;
@@ -32,10 +35,13 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+#if 0
+	// only if you need direct opengl access
 	if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
 		std::cerr << "error loading gl (glad)\n";
 		return 1;
 	}
+#endif
 
 	if (SDL_GL_MakeCurrent(win, gl_context)) {
 		std::cerr << "error making gl context current\n";
@@ -46,6 +52,8 @@ int main(int argc, char** argv) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
+
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
 	ImGui_ImplSDL2_InitForOpenGL(win, gl_context);
 	ImGui_ImplOpenGL3_Init();
@@ -78,15 +86,25 @@ int main(int argc, char** argv) {
 
 		// ======== imgui guis go here ========
 
-		ImGui::ShowDemoWindow();
+		ImGui::ShowDemoWindow(&run);
 
 		// ======== render (end frame) ========
 		ImGui::Render();
-		glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		SDL_GL_SwapWindow(win);
+
+		// we dont use the main window :)
+		//glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+		//glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		//glClear(GL_COLOR_BUFFER_BIT);
+		//ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		//SDL_GL_SwapWindow(win);
+
+		// Update and Render additional Platform Windows
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000/144));
 	}
 
 	ImGui_ImplOpenGL3_Shutdown();

@@ -42,6 +42,7 @@ if(VCPKG_TARGET_TRIPLET)
 	target_link_libraries(imgui_impl_sdl
 		PUBLIC
 			SDL2::SDL2
+			SDL2::SDL2main
 		#PRIVATE
 			#SDL2::SDL2main
 			#SDL2::SDL2-static
